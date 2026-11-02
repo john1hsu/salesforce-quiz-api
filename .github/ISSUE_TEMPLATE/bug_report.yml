@@ -1,0 +1,22 @@
+name: API bug
+description: The API returned an error or unexpected data
+labels: [bug]
+body:
+  - type: input
+    id: request
+    attributes:
+      label: Request
+      description: Method and path, without your API key.
+      placeholder: GET /v1/questions?exam=platform-developer-i&limit=5
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: datasetVersion (from GET /v1/meta)

@@ -1,0 +1,42 @@
+# Controlled vocabulary of exam slugs. Questions may only use slugs listed here.
+# `kg` maps a certification node in salesforce-knowledge-graph to the slug, so that
+# questions inherit exams from the article's `coveredBy` edges automatically.
+# These are study tags, not official exam content: every question is original.
+
+platform-administrator:
+  name: Platform Administrator
+platform-administrator-ii:
+  name: Platform Administrator II
+platform-app-builder:
+  name: Platform App Builder
+platform-developer-i:
+  name: Platform Developer I
+platform-developer-ii:
+  name: Platform Developer II
+sales-cloud-consultant:
+  name: Sales Cloud Consultant
+  kg: kt:sales-cloud-consultant-certification
+service-cloud-consultant:
+  name: Service Cloud Consultant
+experience-cloud-consultant:
+  name: Experience Cloud Consultant
+data-cloud-consultant:
+  name: Data Cloud Consultant
+agentforce-specialist:
+  name: Agentforce Specialist
+platform-integration-architect:
+  name: Platform Integration Architect
+  kg: kt:integration-architect-certification
+platform-data-architect:
+  name: Platform Data Architect
+  kg: kt:platform-data-architect-certification
+sharing-and-visibility-architect:
+  name: Sharing and Visibility Architect
+  kg: kt:sharing-and-visibility-architect-certification
+identity-and-access-management-architect:
+  name: Identity and Access Management Architect
+  kg: kt:identity-and-access-management-architect-certification
+development-lifecycle-and-deployment-architect:
+  name: Development Lifecycle and Deployment Architect
+technical-architect:
+  name: Technical Architect (CTA)

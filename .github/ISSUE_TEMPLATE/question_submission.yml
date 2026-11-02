@@ -1,0 +1,37 @@
+name: Question submission
+description: Propose a new question (or open a PR directly, see CONTRIBUTING.md)
+labels: [content, submission]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Questions must be **original**. Never submit real exam questions or anything from exam-dump sites.
+  - type: input
+    id: article
+    attributes:
+      label: Knowledge-graph article
+      description: The article that supports the answer.
+      placeholder: https://john1hsu.github.io/salesforce-knowledge-graph/articles/platform-events.html
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Stem, options (a-d), the correct answer, and a short explanation.
+    validations:
+      required: true
+  - type: input
+    id: exams
+    attributes:
+      label: Exams it helps with (optional)
+      placeholder: platform-developer-i
+  - type: checkboxes
+    id: original
+    attributes:
+      label: Confirmation
+      options:
+        - label: I wrote this question myself and it is not taken from a real exam or exam dump.
+          required: true
+        - label: I agree to license it under CC BY 4.0.
+          required: true

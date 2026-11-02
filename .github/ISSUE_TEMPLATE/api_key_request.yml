@@ -1,0 +1,42 @@
+name: API key request
+description: Request a free community API key
+labels: [api-key]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keys are free for community and educational apps (5 req/s, 5,000 req/day).
+        **Don't post an email address or any secret here.** The key is sent privately via the contact
+        method on your GitHub profile; make sure one is visible, or say how to reach you below.
+  - type: input
+    id: app
+    attributes:
+      label: App name
+    validations:
+      required: true
+  - type: textarea
+    id: use
+    attributes:
+      label: What will you build?
+      description: A sentence or two, and a link if it exists.
+    validations:
+      required: true
+  - type: dropdown
+    id: volume
+    attributes:
+      label: Expected volume
+      options:
+        - Under 1,000 requests/day
+        - 1,000 to 5,000 requests/day
+        - More than 5,000 requests/day (tell us more)
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      options:
+        - label: I'll show the attribution from GET /v1/meta in my app (CC BY 4.0).
+          required: true
+        - label: I won't present the questions as official Salesforce exam content.
+          required: true

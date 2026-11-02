@@ -1,0 +1,30 @@
+name: Question correction
+description: A question is wrong, outdated or unclear
+labels: [content, correction]
+body:
+  - type: input
+    id: question
+    attributes:
+      label: Question id
+      placeholder: platform-events-002
+    validations:
+      required: true
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What's wrong?
+      options:
+        - The marked answer is wrong
+        - It's outdated by a newer release
+        - The stem or options are ambiguous
+        - The explanation or sources don't support the answer
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details and evidence
+      description: Link to Salesforce docs, release notes or Trailhead that show the correct behavior.
+    validations:
+      required: true

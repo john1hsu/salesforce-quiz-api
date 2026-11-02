@@ -1,0 +1,64 @@
+article: kt:organization-wide-defaults
+questions:
+  - id: organization-wide-defaults-001
+    status: published
+    type: single
+    difficulty: easy
+    stem: Which statement best describes the role of organization-wide defaults (OWD) in record-level security?
+    options:
+      - {id: a, text: "OWD sets the baseline for the most restricted user; the role hierarchy, sharing rules and manual sharing can only widen access from there."}
+      - {id: b, text: "OWD sets the maximum access, and sharing rules are used to restrict users below it."}
+      - {id: c, text: "OWD can give users access to records on objects their profile has no object permission for."}
+      - {id: d, text: "OWD applies only to custom objects; standard objects use the role hierarchy instead."}
+    answer: [a]
+    explanation: >-
+      OWD is the floor of the record-level model: set each object to the level the most restricted user
+      should have, then open access selectively. Sharing tools only ever add access, and OWD never grants
+      more than the user's object permissions allow.
+    exams: [platform-administrator]
+    sources: [s1]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: organization-wide-defaults-002
+    status: published
+    type: single
+    difficulty: medium
+    stem: An admin is setting Default External Access for Opportunity. Which statement is true?
+    options:
+      - {id: a, text: "The external default can be more permissive than the internal default if partners need wider access."}
+      - {id: b, text: "The external default can never be more permissive than the internal default."}
+      - {id: c, text: "External defaults are available only for custom objects."}
+      - {id: d, text: "With secure guest user record access enabled, guest users follow the external default, which can be Public Read Only."}
+    answer: [b]
+    explanation: >-
+      Each supported object has separate internal and external defaults, and the external value can never be
+      more permissive than the internal one. Salesforce recommends Private for every external default. With
+      secure guest user record access, guest users are not treated as external users: their defaults are
+      fixed at Private and only sharing rules open access.
+    exams: [sharing-and-visibility-architect, experience-cloud-consultant]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: organization-wide-defaults-003
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      An admin in an org with large data volumes plans to change the Opportunity OWD from Public Read Only to
+      Private. What is the recommended approach?
+    options:
+      - {id: a, text: "Make the change in production during business hours; OWD changes apply instantly without recalculation."}
+      - {id: b, text: "Rely on Defer Sharing Calculations, which is enabled by default in every org."}
+      - {id: c, text: "Test the change in a sandbox to measure the sharing recalculation time, then schedule it in a maintenance window."}
+      - {id: d, text: "Temporarily delete the role hierarchy so the recalculation is skipped."}
+    answer: [c]
+    explanation: >-
+      Saving an OWD change triggers a sharing recalculation, which can take a long time on large data volumes.
+      Salesforce advises testing in a sandbox first to measure duration and scheduling the change in a
+      maintenance window. Defer Sharing Calculations is off by default and must be enabled by Salesforce.
+    exams: [platform-administrator-ii, sharing-and-visibility-architect]
+    sources: [s1, s4, s5]
+    created: 2026-11-02
+    updated: 2026-11-02

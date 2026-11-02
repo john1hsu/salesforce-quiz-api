@@ -1,0 +1,68 @@
+article: kt:junction-object
+questions:
+  - id: junction-object-001
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      An admin builds a junction object by creating a master-detail field to Position first and a
+      master-detail field to Job Posting Site second. Which statement about the Position relationship is true?
+    options:
+      - {id: a, text: "It becomes the primary relationship, so junction records inherit the Position record's owner and the junction uses Position's icon and colour."}
+      - {id: b, text: "Both relationships are equal, so each junction record's owner is the user who created it."}
+      - {id: c, text: "The second master-detail field created always becomes the primary relationship."}
+      - {id: d, text: "The primary master is chosen later in the related list properties of either parent."}
+    answer: [a]
+    explanation: >-
+      The first master-detail field created becomes the primary relationship. The primary master sets the
+      junction object's look and feel, and junction records inherit the primary master record's owner (and
+      division). If the primary relationship is deleted or converted to a lookup, the secondary is promoted.
+    exams: [platform-administrator, platform-app-builder]
+    sources: [s1, s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: junction-object-002
+    status: published
+    type: multiple
+    difficulty: medium
+    stem: Which TWO statements describe limitations of a custom junction object? (Choose 2.)
+    options:
+      - {id: a, text: "It cannot be the master object in another master-detail relationship."}
+      - {id: b, text: "Its two master-detail fields cannot both point to the same master object."}
+      - {id: c, text: "Roll-up summary fields cannot be defined on either master object."}
+      - {id: d, text: "Apex triggers cannot be written on the junction object."}
+      - {id: e, text: "It cannot be used in report types."}
+    answer: [a, b]
+    explanation: >-
+      A custom junction object uses its full allowance of two master-detail relationships and cannot itself
+      be the master of another, so it cannot have detail objects. A many-to-many self-relationship is not
+      allowed either. Roll-up summaries on both masters, Apex triggers on the junction and two standard
+      report types are all supported.
+    exams: [platform-app-builder, platform-data-architect]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: junction-object-003
+    status: published
+    type: single
+    difficulty: hard
+    stem: >-
+      A firm wants to link Projects and Consultants many-to-many. Each link record needs its own owner and
+      must be shareable through sharing rules. What should the architect recommend?
+    options:
+      - {id: a, text: "A junction object with two master-detail fields, with sharing rules defined on the junction."}
+      - {id: b, text: "A linking object with lookup fields to Project and Consultant, accepting the loss of inherited access, cascade delete and declarative roll-ups."}
+      - {id: c, text: "A junction object whose Grant Access Using Hierarchies checkbox is cleared so owners can be assigned."}
+      - {id: d, text: "A master-detail field from Consultant to Project, with Project as the detail."}
+    answer: [b]
+    explanation: >-
+      Junction records sit on the detail side of master-detail, so they have no visible owner and cannot use
+      sharing rules, manual sharing or queues; access is derived from both masters. Lookup fields keep
+      ownership and security independent, at the cost of inherited access, cascade deletion and declarative
+      roll-ups to the parents.
+    exams: [platform-data-architect, sharing-and-visibility-architect]
+    sources: [s2, s3]
+    created: 2026-11-02
+    updated: 2026-11-02

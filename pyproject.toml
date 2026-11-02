@@ -1,0 +1,17 @@
+[project]
+name = "salesforce-quiz-api"
+version = "1.0.0"
+description = "Open, citation-backed Salesforce quiz questions served over a public REST API"
+requires-python = ">=3.12"
+license = "MIT"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

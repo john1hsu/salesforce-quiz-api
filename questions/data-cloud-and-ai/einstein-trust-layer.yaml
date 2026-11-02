@@ -1,0 +1,65 @@
+article: kt:einstein-trust-layer
+questions:
+  - id: einstein-trust-layer-001
+    status: published
+    type: single
+    difficulty: easy
+    stem: What does data masking in the Einstein Trust Layer do?
+    options:
+      - {id: a, text: "Replaces sensitive values such as names with typed placeholders like <NAME_1> before the prompt reaches the LLM, and restores them in the response."}
+      - {id: b, text: "Encrypts the entire prompt so the LLM processes ciphertext."}
+      - {id: c, text: "Deletes sensitive fields from the CRM record after the response is generated."}
+      - {id: d, text: "Blocks any prompt that contains personal data from being sent."}
+    answer: [a]
+    explanation: >-
+      Masking tokenizes sensitive values into typed placeholders so the model keeps context without seeing
+      real values. On the way back, demasking uses the saved token map to restore them so users see a
+      personalized reply.
+    exams: [agentforce-specialist]
+    sources: [s2, s3]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: einstein-trust-layer-002
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      A compliance team wants to analyse prompts, original responses, toxicity scores and user feedback from
+      generative AI features. Where is this audit data stored?
+    options:
+      - {id: a, text: "In Field History Tracking on the record that grounded the prompt"}
+      - {id: b, text: "In Data Cloud data model objects such as GenAIGatewayRequest and GenAIFeedback"}
+      - {id: c, text: "Only at the LLM provider, under its retention policy"}
+      - {id: d, text: "In the Setup Audit Trail"}
+    answer: [b]
+    explanation: >-
+      The audit trail logs every step as timestamped metadata and stores it in Data Cloud data model objects
+      including GenAIGatewayRequest, GenAIGatewayResponse, GenAIGeneration and GenAIFeedback, queryable with
+      Data Cloud tools. Providers have zero data retention commitments.
+    exams: [agentforce-specialist, data-cloud-consultant]
+    sources: [s4]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: einstein-trust-layer-003
+    status: published
+    type: single
+    difficulty: hard
+    stem: >-
+      An agent built on Agentforce returns details a support user should not see. Investigation shows the
+      user can view those records because of an overly broad sharing rule. What is the right conclusion?
+    options:
+      - {id: a, text: "The Trust Layer's data masking failed and should be re-enabled for agents."}
+      - {id: b, text: "Secure data retrieval follows the user's permissions, so the sharing model must be fixed; masking is disabled for agents."}
+      - {id: c, text: "Prompt defense should have filtered the records, so the prompt template needs more guardrail text."}
+      - {id: d, text: "The toxicity score should have blocked the response."}
+    answer: [b]
+    explanation: >-
+      Retrieval honours the running user's existing permissions, so if sharing over-exposes data, grounding
+      will faithfully surface it. Masking is disabled for agents, so agent designs rely on permissions and
+      grounding scope. The Trust Layer does not replace good data security design.
+    exams: [agentforce-specialist, sharing-and-visibility-architect]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02

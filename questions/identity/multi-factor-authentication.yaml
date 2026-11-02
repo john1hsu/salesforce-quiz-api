@@ -1,0 +1,66 @@
+article: kt:multi-factor-authentication
+questions:
+  - id: multi-factor-authentication-001
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      Users log in to Salesforce through SSO with an external identity provider that already performs MFA.
+      How does Salesforce avoid prompting them for MFA a second time?
+    options:
+      - {id: a, text: "It reads the authentication-method (AMR) or authentication-context (ACR) values the IdP passes showing MFA occurred."}
+      - {id: b, text: "SSO logins are exempt from the MFA requirement."}
+      - {id: c, text: "The admin assigns the Waive Multi-Factor Authentication for Exempt Users permission."}
+      - {id: d, text: "It trusts any SAML assertion signed by the IdP's certificate."}
+    answer: [a]
+    explanation: >-
+      With SSO, MFA must happen at the IdP or with Salesforce's own MFA. Salesforce reads the AMR or ACR
+      signals; if they show MFA occurred, users are not prompted again. An IdP that does not emit them causes
+      duplicate prompts. The exemption waiver has been removed.
+    exams: [identity-and-access-management-architect, platform-administrator]
+    sources: [s1, s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: multi-factor-authentication-002
+    status: published
+    type: multiple
+    difficulty: medium
+    stem: >-
+      Privileged users must use phishing-resistant MFA. Which TWO verification methods does Salesforce point
+      admins to for this? (Choose 2.)
+    options:
+      - {id: a, text: "FIDO U2F or WebAuthn security keys"}
+      - {id: b, text: "Built-in authenticators such as Windows Hello, Touch ID or Face ID"}
+      - {id: c, text: "Salesforce Authenticator push notifications"}
+      - {id: d, text: "Time-based one-time codes from a third-party authenticator app"}
+      - {id: e, text: "Codes sent by SMS"}
+    answer: [a, b]
+    explanation: >-
+      For phishing-resistant MFA, Salesforce points to FIDO-based security keys and built-in authenticators;
+      passkeys can also be enabled for passwordless login. Salesforce recommends that privileged users hold
+      two phishing-resistant factors.
+    exams: [identity-and-access-management-architect]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: multi-factor-authentication-003
+    status: published
+    type: single
+    difficulty: easy
+    stem: A user has lost the only device registered for MFA and cannot log in. What can an admin do?
+    options:
+      - {id: a, text: "Grant the user the MFA exemption permission until a new device arrives."}
+      - {id: b, text: "After verifying the user's identity, issue a Temporary Verification Code."}
+      - {id: c, text: "Turn off the org-wide MFA requirement for direct UI logins."}
+      - {id: d, text: "Reset the user's password, which also clears the MFA requirement."}
+    answer: [b]
+    explanation: >-
+      Admins can issue a Temporary Verification Code to a locked-out user after verifying their identity,
+      which is the break-glass path to plan for. The org-wide MFA setting can no longer be changed and the
+      exemption waiver is gone, so neither is an option.
+    exams: [platform-administrator]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
