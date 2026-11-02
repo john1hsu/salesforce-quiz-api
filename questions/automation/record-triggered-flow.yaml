@@ -1,0 +1,67 @@
+article: kt:record-triggered-flow
+questions:
+  - id: record-triggered-flow-001
+    status: published
+    type: single
+    difficulty: easy
+    stem: >-
+      A record-triggered flow only needs to set a field on the record that triggered it. Which option is the
+      most efficient?
+    options:
+      - {id: a, text: "An Actions and Related Records (after-save) path with an Update Records element"}
+      - {id: b, text: "A Fast Field Updates (before-save) path that sets $Record fields with an Assignment element"}
+      - {id: c, text: "A Run Asynchronously path"}
+      - {id: d, text: "A scheduled path with a zero-minute offset"}
+    answer: [b]
+    explanation: >-
+      Fast field updates run before the record is committed and touch the database least. Salesforce advises
+      choosing them whenever the flow qualifies and setting fields on $Record with an Assignment element.
+      Updating the triggering record after save causes a recursive save.
+    exams: [platform-administrator, platform-app-builder]
+    sources: [s1, s3, s4]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: record-triggered-flow-002
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      When an Opportunity is closed, a record-triggered flow must send its details to an external ERP system.
+      Where should the callout go?
+    options:
+      - {id: a, text: "On the Fast Field Updates path"}
+      - {id: b, text: "On the Actions and Related Records path"}
+      - {id: c, text: "On the Run Asynchronously path"}
+      - {id: d, text: "In a validation rule evaluated by the flow"}
+    answer: [c]
+    explanation: >-
+      Synchronous paths fail if they reach external data, because callouts aren't allowed while a record is
+      saving. The Run Asynchronously path executes right after the transaction completes, so the callout
+      doesn't block the user's save. Note that asynchronous paths don't support ISCHANGED.
+    exams: [platform-app-builder, platform-integration-architect]
+    sources: [s1, s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: record-triggered-flow-003
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      Several record-triggered flows run when an Opportunity is updated, and they must run in a predictable
+      sequence. What should the admin do?
+    options:
+      - {id: a, text: "Consolidate them into one flow, because only one record-triggered flow per object is supported."}
+      - {id: b, text: "Set trigger order values with gaps such as 10, 20 and 30, and review the sequence in Flow Trigger Explorer."}
+      - {id: c, text: "Rename the flows so they sort alphabetically; trigger order is not configurable."}
+      - {id: d, text: "Activate the flows in the order they should run; activation date sets execution order."}
+    answer: [b]
+    explanation: >-
+      Trigger order values set the sequence of flows on the same object and event. Values need not be
+      consecutive, ties run alphabetically, and gaps leave room for new flows. Flow Trigger Explorer lists
+      every flow for an object and action. The old one-flow-per-object rule no longer applies.
+    exams: [platform-administrator, platform-app-builder]
+    sources: [s3, s4]
+    created: 2026-11-02
+    updated: 2026-11-02

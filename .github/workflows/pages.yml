@@ -1,0 +1,51 @@
+name: Docs site
+
+# Publishes the API reference (docs/), the OpenAPI spec and a bulk download of all questions to GitHub Pages.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "47 6 * * *"  # after the daily sync, so the bulk download stays fresh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: john1hsu/salesforce-knowledge-graph
+          path: .kg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+      - run: |
+          python3 scripts/quiz.py build --kg .kg --out _site/questions.json
+          cp -r docs/. _site/
+          cp openapi/openapi.yaml _site/openapi.yaml
+          cp -r examples _site/examples
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

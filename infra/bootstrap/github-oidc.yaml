@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  One-time setup. Lets GitHub Actions in john1hsu/salesforce-quiz-api deploy with short-lived OIDC
+  credentials instead of stored AWS keys. Deploy once per account, after `cdk bootstrap`.
+
+Parameters:
+  GitHubRepo:
+    Type: String
+    Default: john1hsu/salesforce-quiz-api
+  CreateOidcProvider:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Set to false if the account already has the token.actions.githubusercontent.com provider.
+
+Conditions:
+  MakeProvider: !Equals [!Ref CreateOidcProvider, "true"]
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: MakeProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: salesforce-quiz-api-github-deploy
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                # Only main-branch runs and the repo's deployment environments. Pull requests can't deploy.
+                token.actions.githubusercontent.com:sub:
+                  - !Sub repo:${GitHubRepo}:ref:refs/heads/main
+                  - !Sub repo:${GitHubRepo}:environment:staging
+                  - !Sub repo:${GitHubRepo}:environment:production
+                  - !Sub repo:${GitHubRepo}:environment:production-data
+      Policies:
+        - PolicyName: deploy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: UseCdkBootstrapRoles
+                Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-*
+              - Sid: ReadStackOutputs
+                Effect: Allow
+                Action: cloudformation:DescribeStacks
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/SalesforceQuizApi-*/*
+              - Sid: LoadQuestions
+                Effect: Allow
+                Action: [dynamodb:BatchWriteItem, dynamodb:PutItem, dynamodb:Scan, dynamodb:DescribeTable]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:*:${AWS::AccountId}:table/quiz-api-*
+              - Sid: ReadSmokeTestKey
+                Effect: Allow
+                Action: apigateway:GET
+                Resource: !Sub arn:${AWS::Partition}:apigateway:*::/apikeys/*
+
+Outputs:
+  DeployRoleArn:
+    Description: Save as the AWS_DEPLOY_ROLE_ARN repository variable in GitHub.
+    Value: !GetAtt DeployRole.Arn

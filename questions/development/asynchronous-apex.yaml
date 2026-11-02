@@ -1,0 +1,62 @@
+article: kt:asynchronous-apex
+questions:
+  - id: asynchronous-apex-001
+    status: published
+    type: single
+    difficulty: easy
+    stem: Why does Salesforce recommend Queueable Apex over future methods for new asynchronous work?
+    options:
+      - {id: a, text: "Queueable jobs return a job ID for monitoring, accept non-primitive member variables and can be chained."}
+      - {id: b, text: "Queueable jobs are exempt from the org-wide asynchronous execution limit."}
+      - {id: c, text: "Queueable jobs run synchronously in the same transaction, so they are easier to debug."}
+      - {id: d, text: "Future methods are no longer supported in the current API version."}
+    answer: [a]
+    explanation: >-
+      Queueable covers the same use cases as future methods and adds a job ID (from System.enqueueJob),
+      sObject and custom-type member variables, and chaining. All async types share the same org-wide
+      execution pool, and future methods are still supported, for example to isolate mixed DML.
+    exams: [platform-developer-i]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: asynchronous-apex-002
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      A Batch Apex class's start method returns a Database.QueryLocator. What is the maximum number of
+      records the QueryLocator can return?
+    options:
+      - {id: a, text: "50,000"}
+      - {id: b, text: "10 million"}
+      - {id: c, text: "50 million"}
+      - {id: d, text: "No limit"}
+    answer: [c]
+    explanation: >-
+      A QueryLocator can return up to 50 million records; larger results fail the job immediately. Records are
+      passed to execute in chunks of 200 by default, up to 2,000, and each chunk runs in its own transaction.
+    exams: [platform-developer-i, platform-developer-ii]
+    sources: [s3]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: asynchronous-apex-003
+    status: published
+    type: single
+    difficulty: easy
+    stem: A trigger must hand Account records to a future method for further processing. How should it pass them?
+    options:
+      - {id: a, text: "Pass the list of Account sObjects directly."}
+      - {id: b, text: "Pass the record IDs and query fresh data inside the future method."}
+      - {id: c, text: "Serialize the trigger context into a static variable read by the future method."}
+      - {id: d, text: "Call a second future method that holds the records."}
+    answer: [b]
+    explanation: >-
+      Future method parameters must be primitives, arrays of primitives or collections of primitives.
+      sObjects are disallowed because the record may change before the method runs, so pass IDs and query
+      inside the method. Future methods also cannot call other future methods.
+    exams: [platform-developer-i]
+    sources: [s4]
+    created: 2026-11-02
+    updated: 2026-11-02

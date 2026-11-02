@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Salesforce Quiz API</title>
+  <meta name="description" content="Open, citation-backed Salesforce practice questions for quiz apps. Free community API.">
+  <style>
+    :root { --bg: #ffffff; --fg: #1d2330; --muted: #5a6475; --accent: #0b5cad; --band: #f3f6fa; --line: #dde3eb; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg: #12161d; --fg: #e8ecf2; --muted: #a2acbb; --accent: #6fb1ff; --band: #1a202a; --line: #2a3240; }
+    }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    header { background: var(--band); border-bottom: 1px solid var(--line); padding: 28px 16px; }
+    .in { max-width: 960px; margin: 0 auto; }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    p { margin: 0 0 14px; color: var(--muted); max-width: 680px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    nav a { color: var(--accent); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; text-decoration: none; font-size: 14px; background: var(--bg); }
+    nav a:hover { border-color: var(--accent); }
+    #redoc-container { background: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="in">
+      <h1>Salesforce Quiz API</h1>
+      <p>Original, citation-backed Salesforce practice questions for any quiz app. Every answer links to the
+        official sources behind it. Questions are CC BY 4.0; not affiliated with or endorsed by Salesforce.</p>
+      <nav>
+        <a href="https://github.com/john1hsu/salesforce-quiz-api/issues/new?template=api_key_request.yml">Get an API key</a>
+        <a href="questions.json">Bulk download (JSON)</a>
+        <a href="openapi.yaml">OpenAPI spec</a>
+        <a href="https://github.com/john1hsu/salesforce-quiz-api/tree/main/examples/javascript">Sample client</a>
+        <a href="https://github.com/john1hsu/salesforce-quiz-api">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <div id="redoc-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.js"></script>
+  <script>
+    Redoc.init("openapi.yaml", { hideDownloadButton: false, expandResponses: "200", theme: { colors: { primary: { main: "#0b5cad" } } } },
+      document.getElementById("redoc-container"));
+  </script>
+</body>
+</html>

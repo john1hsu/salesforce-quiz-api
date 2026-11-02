@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needs the base branch for the permanent-id check
+
+      - uses: actions/checkout@v4
+        with:
+          repository: john1hsu/salesforce-knowledge-graph
+          path: .kg
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Validate questions against the knowledge graph
+        run: |
+          BASE=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="--base-ref origin/${{ github.base_ref }}"
+          fi
+          python3 scripts/quiz.py check --kg .kg $BASE
+
+      - name: Build dataset
+        run: python3 scripts/quiz.py build --kg .kg
+
+      - name: Unit tests
+        run: pytest -q
+
+      - name: Validate OpenAPI spec
+        run: |
+          pip install openapi-spec-validator==0.7.1
+          openapi-spec-validator openapi/openapi.yaml
+
+  synth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install -r infra/requirements.txt
+      - name: CDK synth
+        working-directory: infra
+        env:
+          CDK_DEFAULT_ACCOUNT: "123456789012"
+        run: npx --yes aws-cdk@2 synth --quiet

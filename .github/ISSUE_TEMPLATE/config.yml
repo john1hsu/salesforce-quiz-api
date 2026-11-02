@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Suggest a new topic
+    url: https://github.com/john1hsu/salesforce-knowledge-graph/issues
+    about: Questions need a knowledge-graph article first. Suggest missing topics there.
+  - name: Security issue
+    url: https://github.com/john1hsu/salesforce-quiz-api/security/advisories/new
+    about: Report vulnerabilities or leaked keys privately.

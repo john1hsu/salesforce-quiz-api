@@ -1,0 +1,67 @@
+name: Deploy stage
+description: Build the dataset, deploy the CDK stack (unless data-only), load questions and smoke test.
+
+inputs:
+  stage:
+    description: staging or prod
+    required: true
+  role-arn:
+    required: true
+  region:
+    required: true
+  data-only:
+    description: Skip the CDK deploy and only reload questions
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: john1hsu/salesforce-knowledge-graph
+        path: .kg
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - shell: bash
+      run: pip install -r requirements-dev.txt
+
+    - name: Build dataset
+      shell: bash
+      run: python3 scripts/quiz.py build --kg .kg
+
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.role-arn }}
+        aws-region: ${{ inputs.region }}
+
+    - if: inputs.data-only != 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - name: CDK deploy
+      if: inputs.data-only != 'true'
+      shell: bash
+      working-directory: infra
+      run: |
+        pip install -r requirements.txt
+        npx --yes aws-cdk@2 deploy "SalesforceQuizApi-${{ inputs.stage }}" --require-approval never
+
+    - name: Load questions and smoke test
+      shell: bash
+      run: |
+        out() {
+          aws cloudformation describe-stacks --stack-name "SalesforceQuizApi-${{ inputs.stage }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text
+        }
+        TABLE=$(out TableName)
+        URL=$(out ApiUrl)
+        KEY=$(aws apigateway get-api-key --api-key "$(out SmokeTestKeyId)" --include-value --query value --output text)
+        echo "::add-mask::$KEY"
+        python3 scripts/quiz.py load --table "$TABLE"
+        # The Lambda caches the dataset for up to 5 minutes; the smoke test only needs some data to exist.
+        python3 scripts/smoke_test.py "$URL" "$KEY"
+        echo "### ${{ inputs.stage }}: $URL" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,66 @@
+article: kt:platform-events
+questions:
+  - id: platform-events-001
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      An Apex trigger publishes a platform event, and the subscriber must read the records saved in the
+      publishing transaction. Which publish behavior should the event definition use?
+    options:
+      - {id: a, text: "Publish Immediately"}
+      - {id: b, text: "Publish After Commit"}
+      - {id: c, text: "Publish Immediately with a subscriber batch size of 1"}
+      - {id: d, text: "Publish On Rollback"}
+    answer: [b]
+    explanation: >-
+      Publish After Commit sends the event only if the transaction commits, so subscribers can read the
+      committed records. Publish Immediately, the default, sends the message when the publish call runs even
+      if the transaction later fails, so a subscriber may see it before the data exists.
+    exams: [platform-developer-i, platform-integration-architect]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: platform-events-002
+    status: published
+    type: single
+    difficulty: easy
+    stem: How long are high-volume platform event messages retained on the event bus for replay?
+    options:
+      - {id: a, text: "24 hours"}
+      - {id: b, text: "72 hours"}
+      - {id: c, text: "7 days"}
+      - {id: d, text: "30 days"}
+    answer: [b]
+    explanation: >-
+      High-volume event messages stay on the event bus for 72 hours; legacy standard-volume events defined
+      before Spring '19 were kept for 24 hours. Subscribers store each message's ReplayId to resume from a
+      known position.
+    exams: [platform-integration-architect]
+    sources: [s2]
+    created: 2026-11-02
+    updated: 2026-11-02
+
+  - id: platform-events-003
+    status: published
+    type: single
+    difficulty: medium
+    stem: >-
+      Apex code calls EventBus.publish() and receives a successful Database.SaveResult. What does the
+      success result mean?
+    options:
+      - {id: a, text: "Every subscriber has received and processed the event."}
+      - {id: b, text: "The event message was queued for publishing; Apex publish callbacks give final confirmation."}
+      - {id: c, text: "The event was written to a queryable __e table and can be found with SOQL."}
+      - {id: d, text: "The surrounding transaction has committed."}
+    answer: [b]
+    explanation: >-
+      Publishing is asynchronous: a successful SaveResult only means the message was enqueued. Failed
+      publishes return errors in the result rather than throwing, list publishes can partially succeed, and
+      Salesforce points to Apex publish callbacks for final confirmation. Stored events cannot be queried
+      with SOQL.
+    exams: [platform-developer-ii, platform-integration-architect]
+    sources: [s2, s6]
+    created: 2026-11-02
+    updated: 2026-11-02

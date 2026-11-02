@@ -1,0 +1,68 @@
+name: Draft new questions
+
+# Weekly, draft questions for knowledge-graph articles that don't have any yet and open a pull request.
+# Nothing is published until a human reviews the PR against the cited articles and merges it.
+
+on:
+  schedule:
+    - cron: "41 14 * * 1"  # Mondays
+  workflow_dispatch:
+    inputs:
+      articles:
+        description: Number of articles to draft questions for
+        default: "3"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  draft:
+    if: vars.GENERATE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: john1hsu/salesforce-knowledge-graph
+          path: .kg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+
+      - name: Draft questions
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          QUIZ_MODEL: ${{ vars.QUIZ_MODEL }}
+        run: python3 scripts/generate.py --kg .kg --articles "${{ inputs.articles || '3' }}"
+
+      - name: Validate
+        run: python3 scripts/quiz.py check --kg .kg
+
+      - id: summary
+        run: |
+          {
+            echo 'files<<EOF'
+            sed 's/^/- `/; s/$/`/' dist/generated.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: generated/questions
+          delete-branch: true
+          add-paths: questions/**
+          commit-message: "Draft questions for new knowledge-graph articles"
+          title: "Draft questions: review before merging"
+          labels: generated, needs-review
+          body: |
+            AI-drafted questions for articles that had none.
+
+            ${{ steps.summary.outputs.files }}
+
+            **Review checklist** (merging publishes these questions):
+            - [ ] Each answer is supported by the cited source sections of the article
+            - [ ] Distractors are plausible but clearly wrong
+            - [ ] Nothing resembles real exam content
+            - [ ] Exam tags fit

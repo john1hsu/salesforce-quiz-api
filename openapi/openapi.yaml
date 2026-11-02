@@ -1,0 +1,360 @@
+openapi: 3.1.0
+info:
+  title: Salesforce Quiz API
+  version: 1.0.0
+  summary: Open, citation-backed Salesforce practice questions for quiz apps.
+  description: |
+    A free community API serving original Salesforce practice questions. Every question is grounded in an
+    article in the [Salesforce Knowledge Graph](https://john1hsu.github.io/salesforce-knowledge-graph/) and
+    cites the official sources behind its answer.
+
+    **Authentication.** Send your key in the `x-api-key` header. Request a key by opening an
+    [API key request issue](https://github.com/john1hsu/salesforce-quiz-api/issues/new?template=api_key_request.yml).
+
+    **Rate limits.** Community keys get 5 requests/second (burst 10) and 5,000 requests/day. Exceeding them
+    returns `429`. Cache list responses where you can, or use the bulk download for offline apps.
+
+    **Answers.** List and detail endpoints hide `answer` and `explanation` unless `includeAnswers=true`, so a
+    naive UI can't leak them. Apps can grade locally with `includeAnswers=true` or call `POST /check`.
+
+    **Syncing.** Question ids are permanent. A changed question gets a new `updated` date; a removed
+    question is never deleted but marked `status: retired`. To sync, store the latest `updated` you have seen
+    and call `GET /v1/questions?updatedSince=<date>`, which also returns retired questions so you can drop them.
+
+    **Licence.** Questions are licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Show the
+    `meta.attribution` text in your app. Questions are original study material, not real exam content, and
+    the project is not affiliated with or endorsed by Salesforce.
+  license:
+    name: CC BY 4.0 (content), MIT (code)
+    url: https://github.com/john1hsu/salesforce-quiz-api#license
+  contact:
+    name: Salesforce Quiz API on GitHub
+    url: https://github.com/john1hsu/salesforce-quiz-api/issues
+servers:
+  - url: https://{apiHost}/{stage}
+    description: Replace with the URL published in the README after the first deployment.
+    variables:
+      apiHost:
+        default: example.execute-api.us-east-1.amazonaws.com
+      stage:
+        default: prod
+        enum: [prod, staging]
+security:
+  - apiKey: []
+tags:
+  - name: Questions
+  - name: Catalog
+paths:
+  /v1/questions:
+    get:
+      tags: [Questions]
+      operationId: listQuestions
+      summary: List questions
+      description: Questions sorted by id, paginated with an opaque cursor.
+      parameters:
+        - $ref: '#/components/parameters/exam'
+        - $ref: '#/components/parameters/domain'
+        - $ref: '#/components/parameters/topic'
+        - $ref: '#/components/parameters/difficulty'
+        - name: updatedSince
+          in: query
+          description: Only questions updated on or after this date. Includes retired questions, for syncing.
+          schema: {type: string, format: date}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+        - name: cursor
+          in: query
+          description: The `nextCursor` value from the previous page.
+          schema: {type: string}
+        - $ref: '#/components/parameters/includeAnswers'
+        - $ref: '#/components/parameters/shuffleOptions'
+      responses:
+        '200':
+          description: A page of questions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, nextCursor, datasetVersion]
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/Question'}
+                  nextCursor: {type: [string, 'null'], description: Null on the last page.}
+                  datasetVersion: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+  /v1/questions/random:
+    get:
+      tags: [Questions]
+      operationId: randomQuestions
+      summary: Random questions
+      description: Up to `count` distinct published questions matching the filters. Returns fewer if fewer match.
+      parameters:
+        - name: count
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 50, default: 1}
+        - $ref: '#/components/parameters/exam'
+        - $ref: '#/components/parameters/domain'
+        - $ref: '#/components/parameters/topic'
+        - $ref: '#/components/parameters/difficulty'
+        - $ref: '#/components/parameters/includeAnswers'
+        - $ref: '#/components/parameters/shuffleOptions'
+      responses:
+        '200':
+          description: Random questions.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/Question'}
+                  datasetVersion: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+  /v1/questions/{id}:
+    get:
+      tags: [Questions]
+      operationId: getQuestion
+      summary: Get one question
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/includeAnswers'
+        - $ref: '#/components/parameters/shuffleOptions'
+      responses:
+        '200':
+          description: The question, including retired ones.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Question'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+  /v1/questions/{id}/check:
+    post:
+      tags: [Questions]
+      operationId: checkAnswer
+      summary: Check an answer
+      description: Grades a selection. Order doesn't matter; multiple-answer questions need every correct option and no others.
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selected]
+              properties:
+                selected:
+                  type: array
+                  minItems: 1
+                  items: {type: string, pattern: '^[a-f]$'}
+            example: {selected: [b]}
+      responses:
+        '200':
+          description: Grading result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, correct, correctOptionIds, explanation, sources]
+                properties:
+                  id: {type: string}
+                  correct: {type: boolean}
+                  correctOptionIds:
+                    type: array
+                    items: {type: string}
+                  explanation: {type: string}
+                  sources:
+                    type: array
+                    items: {$ref: '#/components/schemas/Source'}
+                  topic: {$ref: '#/components/schemas/Topic'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+  /v1/exams:
+    get:
+      tags: [Catalog]
+      operationId: listExams
+      summary: Exam tags and question counts
+      responses:
+        '200':
+          description: Exams.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: string, example: platform-developer-i}
+                        name: {type: string, example: Platform Developer I}
+                        questionCount: {type: integer}
+  /v1/domains:
+    get:
+      tags: [Catalog]
+      operationId: listDomains
+      summary: Knowledge domains and question counts
+      responses:
+        '200':
+          description: Domains.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: string, example: integration}
+                        questionCount: {type: integer}
+  /v1/meta:
+    get:
+      tags: [Catalog]
+      operationId: getMeta
+      summary: Dataset version, counts, licence and attribution
+      responses:
+        '200':
+          description: Metadata.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Meta'}
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[0-9]{3}$'}
+      example: platform-events-001
+    exam:
+      name: exam
+      in: query
+      description: Exam tag from `GET /v1/exams`.
+      schema: {type: string}
+      example: platform-developer-i
+    domain:
+      name: domain
+      in: query
+      schema: {type: string}
+      example: integration
+    topic:
+      name: topic
+      in: query
+      description: Knowledge-graph article id.
+      schema: {type: string}
+      example: kt:platform-events
+    difficulty:
+      name: difficulty
+      in: query
+      schema: {type: string, enum: [easy, medium, hard]}
+    includeAnswers:
+      name: includeAnswers
+      in: query
+      schema: {type: boolean, default: false}
+    shuffleOptions:
+      name: shuffleOptions
+      in: query
+      description: Randomise option order. Option ids stay attached to their text.
+      schema: {type: boolean, default: false}
+  responses:
+    BadRequest:
+      description: Invalid parameter or body.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NotFound:
+      description: No such question or route.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Forbidden:
+      description: Missing or invalid API key.
+    TooManyRequests:
+      description: Rate limit or daily quota exceeded.
+  schemas:
+    Question:
+      type: object
+      required: [id, status, type, difficulty, stem, options, domain, exams, topic, sources, created, updated]
+      properties:
+        id: {type: string, description: Permanent id., example: platform-events-001}
+        status: {type: string, enum: [published, retired]}
+        type: {type: string, enum: [single, multiple], description: '`multiple` questions say in the stem how many to choose.'}
+        difficulty: {type: string, enum: [easy, medium, hard]}
+        stem: {type: string}
+        options:
+          type: array
+          items:
+            type: object
+            required: [id, text]
+            properties:
+              id: {type: string, example: a}
+              text: {type: string}
+        answer:
+          type: array
+          description: Correct option ids. Present only with `includeAnswers=true`.
+          items: {type: string}
+        explanation:
+          type: string
+          description: Present only with `includeAnswers=true`.
+        domain: {type: string}
+        exams:
+          type: array
+          items: {type: string}
+        topic: {$ref: '#/components/schemas/Topic'}
+        sources:
+          type: array
+          items: {$ref: '#/components/schemas/Source'}
+        release: {type: string, description: Salesforce release the source article was verified against., example: "Winter '27"}
+        created: {type: string, format: date}
+        updated: {type: string, format: date}
+        retiredReason: {type: string}
+    Topic:
+      type: object
+      properties:
+        id: {type: string, example: kt:platform-events}
+        title: {type: string, example: Platform Events}
+        url: {type: string, format: uri}
+    Source:
+      type: object
+      properties:
+        title: {type: string}
+        publisher: {type: string}
+        url: {type: string, format: uri}
+    Meta:
+      type: object
+      properties:
+        apiVersion: {type: string}
+        datasetVersion: {type: string}
+        generatedAt: {type: string, format: date-time}
+        lastUpdated: {type: string, format: date}
+        questionCount: {type: integer}
+        retiredCount: {type: integer}
+        license: {type: string}
+        attribution: {type: string}
+        sourceGraph: {type: string, format: uri}
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: {type: string}
+            message: {type: string}

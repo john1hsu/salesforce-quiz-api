@@ -1,0 +1,66 @@
+name: Sync with knowledge graph
+
+# The knowledge graph gains articles hourly and can change titles, releases or sources. Once a day,
+# re-validate every question against the latest graph and reload both stages with fresh metadata.
+# Question content itself only changes through reviewed PRs, so this runs without manual approval.
+# If validation fails (for example, an article dropped a source a question cites), an issue is opened.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: john1hsu/salesforce-knowledge-graph
+          path: .kg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+      - id: check
+        shell: bash  # explicit, so the step runs with pipefail and tee doesn't hide a failure
+        run: python3 scripts/quiz.py check --kg .kg | tee check.txt
+      - name: Open an issue on failure
+        if: failure() && steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Sync: questions no longer match the knowledge graph ($(date -u +%F))" \
+            --label sync --body "$(printf 'The daily sync found problems:\n\n```\n%s\n```\n' "$(cat check.txt)")" \
+          || gh issue create --title "Sync: questions no longer match the knowledge graph ($(date -u +%F))" \
+            --body "$(printf '```\n%s\n```\n' "$(cat check.txt)")"
+
+  reload:
+    needs: validate
+    if: vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        include:
+          - {stage: staging, environment: staging}
+          - {stage: prod, environment: production-data}
+    environment: ${{ matrix.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/deploy-stage
+        with:
+          stage: ${{ matrix.stage }}
+          role-arn: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          data-only: "true"
