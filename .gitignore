@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+_site/
+.kg/
+infra/cdk.out/
+infra/cdk.context.json
+node_modules/
+.venv/
+.env
